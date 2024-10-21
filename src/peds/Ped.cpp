@@ -7393,6 +7393,7 @@ CPed::Teleport(CVector pos)
 void
 CPed::SetSeekCar(CVehicle *car, uint32 doorNode)
 {
+	debug("SetSeekCar\n");
 	if (m_nPedState == PED_SEEK_CAR)
 		return;
 
@@ -7416,6 +7417,7 @@ CPed::SetSeekCar(CVehicle *car, uint32 doorNode)
 void
 CPed::SeekCar(void)
 {
+	debug("SeekCar\n");
 	CVehicle *vehToSeek = m_carInObjective;
 	CVector dest(0.0f, 0.0f, 0.0f);
 	if (!vehToSeek) {
