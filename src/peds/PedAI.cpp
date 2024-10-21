@@ -2324,6 +2324,7 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 		ped->QuitEnteringCar();
 		return;
 	}
+
 	bool itsVan = !!veh->bIsVan;
 	bool itsBus = !!veh->bIsBus;
 	bool itsLow = !!veh->bLowVehicle;
@@ -2770,9 +2771,10 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 			}
 
 			if (player != pedToDragOut) {
+				debug("PedAnimDoorOpenCB: pedToDragOut->SetBeingDraggedFromCar\n");
 				pedToDragOut->SetBeingDraggedFromCar(veh, ped->m_vehDoor, false);
-				if (pedToDragOut->IsGangMember())
-					pedToDragOut->RegisterThreatWithGangPeds(ped);
+				// if (pedToDragOut->IsGangMember())
+				// 	pedToDragOut->RegisterThreatWithGangPeds(ped);
 			}
 		}
 	}
@@ -4036,7 +4038,6 @@ CPed::SetEnterCar_AllClear(CVehicle *car, uint32 doorNode, uint32 doorFlag)
 void
 CPed::EnterCar(void)
 {
-	debug("EnterCar\n");
 	if (IsNotInWreckedVehicle() && m_fHealth > 0.0f) {
 		CVehicle *veh = m_pMyVehicle;
 
