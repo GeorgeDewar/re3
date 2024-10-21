@@ -708,10 +708,10 @@ CVehicle::BladeColSectorList(CPtrList &list, CColModel &rotorColModel, CMatrix &
 			dirToRotor.Normalise();
 			int localDir = ped->GetLocalDirection(dirToRotor);
 			if(ped->m_attachedTo == nil){
-				ped->bIsStanding = false;
+				//ped->bIsStanding = false;
 				ped->ApplyMoveForce(-5.0f*dirToRotor.x, -5.0f*dirToRotor.y, 5.0f);
 			}
-			ped->InflictDamage(this, WEAPONTYPE_RUNOVERBYCAR, 1000.0f, PEDPIECE_TORSO, localDir);
+			//ped->InflictDamage(this, WEAPONTYPE_RUNOVERBYCAR, 1000.0f, PEDPIECE_TORSO, localDir);
 
 			if(CGame::nastyGame && ped->GetIsOnScreen()){
 				for(i = 0; i < 16; i++)
