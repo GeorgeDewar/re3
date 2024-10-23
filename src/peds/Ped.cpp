@@ -4238,6 +4238,7 @@ CPed::PedSetDraggedOutCarCB(CAnimBlendAssociation *dragAssoc, void *arg)
 void
 CPed::PedSetInCarCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
+	debug("PedSetInCarCB\n");
 	CPed *ped = (CPed*)arg;
 
 	CVehicle *veh = ped->m_pMyVehicle;

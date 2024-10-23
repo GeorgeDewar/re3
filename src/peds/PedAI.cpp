@@ -2372,6 +2372,8 @@ CPed::ReactToAttack(CEntity *attacker)
 void
 CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
+	debug("PedAnimAlignCB\n");
+
 	CPed *ped = (CPed*)arg;
 
 	CVehicle *veh = ped->m_pMyVehicle;
@@ -2616,6 +2618,7 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 void
 CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 {
+	debug("PedAnimDoorOpenCB\n");
 	CPed* ped = (CPed*)arg;
 
 	CVehicle* veh = ped->m_pMyVehicle;
@@ -2835,6 +2838,7 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 void
 CPed::PedAnimPullPedOutCB(CAnimBlendAssociation* animAssoc, void* arg)
 {
+	debug("PedAnimPullPedOutCB\n");
 	CPed* ped = (CPed*)arg;
 
 	CVehicle* veh = ped->m_pMyVehicle;
@@ -2920,6 +2924,7 @@ CPed::PedAnimPullPedOutCB(CAnimBlendAssociation* animAssoc, void* arg)
 void
 CPed::PedAnimGetInCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
+	debug("PedAnimGetInCB\n");
 	CPed *ped = (CPed*) arg;
 
 	CVehicle *veh = ped->m_pMyVehicle;
@@ -3084,6 +3089,7 @@ CPed::PedShuffle(void)
 void
 CPed::PedAnimDoorCloseCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
+	debug("PedAnimDoorCloseCB\n");
 	CPed *ped = (CPed*)arg;
 
 	CAutomobile *veh = (CAutomobile*)(ped->m_pMyVehicle);
@@ -3707,6 +3713,7 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 void
 CPed::SetCarJack(CVehicle* car)
 {
+	debug("SetCarJack\n");
 	uint8 doorFlag;
 	eDoors door;
 	CPed *pedInSeat = nil;
@@ -3789,6 +3796,8 @@ CPed::SetCarJack(CVehicle* car)
 void
 CPed::SetCarJack_AllClear(CVehicle* car, uint32 doorNode, uint32 doorFlag)
 {
+	debug("SetCarJack_AllClear\n");
+
 	if (m_nPedState != PED_SEEK_CAR)
 		SetStoredState();
 
