@@ -1647,6 +1647,7 @@ CPed::ProcessObjective(void)
 										doorNode = CAR_DOOR_RR;
 									}
 								}
+								debug("OBJECTIVE_LEAVE_CAR_AND_DIE\n");
 								SetBeingDraggedFromCar(m_pMyVehicle, doorNode, false);
 							}
 						}
@@ -2295,8 +2296,103 @@ CPed::ReactToAttack(CEntity *attacker)
 }
 
 void
+CPed::PoliteCarJack(CAnimBlendAssociation *animAssoc, void *arg) {
+	debug("PoliteCarJack\n");
+		CPed *ped = (CPed*)arg;
+
+	CVehicle *veh = ped->m_pMyVehicle;
+	if (animAssoc)
+		animAssoc->blendDelta = -1000.0f;
+
+	if (!ped->IsNotInWreckedVehicle())
+		return;
+
+	if (!ped->EnteringCar()) {
+		if (ped->m_nPedState != PED_DRIVING)
+			ped->QuitEnteringCar();
+
+		return;
+	}
+
+	if (!ped->m_vehDoor) {
+		ped->QuitEnteringCar();
+		return;
+	}
+
+	if (ped->m_fHealth == 0.0f) {
+		ped->QuitEnteringCar();
+		return;
+	}
+
+	bool itsVan = !!veh->bIsVan;
+	bool itsBus = !!veh->bIsBus;
+	bool itsLow = !!veh->bLowVehicle;
+	eDoors enterDoor;
+
+	switch (ped->m_vehDoor) {
+		case CAR_DOOR_RF:
+			itsVan = false;
+			enterDoor = DOOR_FRONT_RIGHT;
+			break;
+		case CAR_DOOR_RR:
+			enterDoor = DOOR_REAR_RIGHT;
+			break;
+		case CAR_DOOR_LF:
+			itsVan = false;
+			enterDoor = DOOR_FRONT_LEFT;
+			break;
+		case CAR_DOOR_LR:
+			enterDoor = DOOR_REAR_LEFT;
+			break;
+		default:
+			break;
+	}
+
+	// Make the driver and all passengers leave
+	if (veh->pDriver) {
+		veh->pDriver->SetExitCar(veh, ped->m_vehDoor);
+	}
+	int timer = 100;
+	for (int i = 0; i < veh->m_nNumMaxPassengers; i++){
+		if (veh->pPassengers[i]) {
+			veh->pPassengers[i]->m_leaveCarTimer = timer;
+			veh->pPassengers[i]->SetObjective(OBJECTIVE_LEAVE_CAR, veh);
+			timer += CGeneral::GetRandomNumberInRange(200, 400);
+		}
+	}
+
+	veh->bIsBeingCarJacked = false;
+
+	// Get into the car
+	if (enterDoor != DOOR_FRONT_LEFT && enterDoor != DOOR_REAR_LEFT) {
+		if (itsVan) {
+			ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_VAN, ANIM_STD_VAN_GET_IN_REAR_RHS);
+		} else if (itsBus) {
+			ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_COACH, ANIM_STD_COACH_GET_IN_RHS);
+		} else if (itsLow) {
+			ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_GET_IN_LO_RHS);
+		} else {
+			ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_GET_IN_RHS);
+		}
+	} else if (itsVan) {
+		ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_VAN, ANIM_STD_VAN_GET_IN_REAR_LHS);
+	} else if (itsBus) {
+		ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_COACH, ANIM_STD_COACH_GET_IN_LHS);
+	} else if (itsLow) {
+		ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_GET_IN_LO_LHS);
+	} else {
+		ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_GET_IN_LHS);
+	}
+
+	ped->m_pVehicleAnim->SetFinishCallback(PedSetInCarCB, ped);
+
+	//ped->SetEnterCar(veh, ped->m_vehDoor);
+}
+
+void
 CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
+	debug("PedAI.cpp - CPed::PedAnimAlignCB\n");
 	CPed *ped = (CPed*)arg;
 
 	CVehicle *veh = ped->m_pMyVehicle;
@@ -2322,6 +2418,7 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 		ped->QuitEnteringCar();
 		return;
 	}
+
 	bool itsVan = !!veh->bIsVan;
 	bool itsBus = !!veh->bIsBus;
 	bool itsLow = !!veh->bLowVehicle;
@@ -2347,6 +2444,7 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 	}
 
 	if (veh->IsBike()) {
+		debug("IsBike is true\n");
 		CPed *pedToDragOut = nil;
 		if (veh->GetStatus() == STATUS_ABANDONED) {
 			if (ped->m_vehDoor == CAR_WINDSCREEN) {
@@ -2433,6 +2531,7 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 		}
 
 		if (pedToDragOut) {
+			debug("pedToDragOut, isBike\n");
 			pedToDragOut->SetBeingDraggedFromCar(veh, ped->m_vehDoor, false);
 			if (pedToDragOut->IsGangMember())
 				pedToDragOut->RegisterThreatWithGangPeds(ped);
@@ -2449,7 +2548,7 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 	}
 
 	if (veh->IsDoorMissing(enterDoor) || veh->IsDoorFullyOpen(enterDoor)) {
-
+		debug("Door is missing or already open\n");
 		veh->AutoPilot.m_nCruiseSpeed = 0;
 		if (ped->m_nPedState == PED_CARJACK || veh->m_nNumMaxPassengers == 0 && veh->pDriver && enterDoor == DOOR_FRONT_RIGHT) {
 			ped->PedAnimDoorOpenCB(nil, ped);
@@ -2477,7 +2576,7 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 		ped->m_pVehicleAnim->SetFinishCallback(PedAnimGetInCB, ped);
 
 	} else if (veh->CanPedOpenLocks(ped)) {
-
+		debug("Lock can be opened\n");
 		veh->AutoPilot.m_nCruiseSpeed = 0;
 		if (enterDoor != DOOR_FRONT_LEFT && enterDoor != DOOR_REAR_LEFT) {
 			if (itsVan) {
@@ -2492,14 +2591,16 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 		} else if (itsBus) {
 			ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_COACH, ANIM_STD_COACH_OPEN_LHS);
 		} else {
-
-			if (ped->m_objective == OBJECTIVE_ENTER_CAR_AS_DRIVER && veh->pDriver) {
+			debug("ped->m_objective = %d\n", ped->m_objective);
+			// Originally only if ped->m_objective == OBJECTIVE_ENTER_CAR_AS_DRIVER as well, which was sometimes the case
+			if (veh->pDriver) {
 
 				if (!veh->bLowVehicle
 					&& veh->pDriver->CharCreatedBy != MISSION_CHAR
 					&& veh->pDriver->m_nPedState == PED_DRIVING) {
-
-					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_QUICKJACK);
+					
+					debug("Quick jack\n");
+					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_GET_IN_LHS); // originally ANIM_STD_QUICKJACK
 					ped->m_pVehicleAnim->SetFinishCallback(PedAnimGetInCB, ped);
 
 					CPlayerPed *player = nil;
@@ -2511,23 +2612,29 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 					}
 
 					if (player != veh->pDriver) {
-						veh->pDriver->SetBeingDraggedFromCar(veh, ped->m_vehDoor, true);
-						if (veh->pDriver->IsGangMember())
-							veh->pDriver->RegisterThreatWithGangPeds(ped);
+						// This line makes the occupants exit
+						// veh->pDriver->SetBeingDraggedFromCar(veh, ped->m_vehDoor, true);
+						veh->pDriver->SetExitCar(veh, ped->m_vehDoor);
+						// if (veh->pDriver->IsGangMember())
+						// 	veh->pDriver->RegisterThreatWithGangPeds(ped);
 					}
 					return;
 				}
 			}
 			if (veh->IsOpenTopCar() && !veh->pDriver && ped->m_objective == OBJECTIVE_ENTER_CAR_AS_DRIVER) {
+				debug("Open top car\n");
 				ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_JUMP_IN_LO_LHS);
 				ped->m_pVehicleAnim->SetFinishCallback(PedAnimGetInCB, ped);
 				return;
 			}
+
+			debug("Standard car open\n");
 			ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_OPEN_DOOR_LHS);
 		}
 		ped->m_pVehicleAnim->SetFinishCallback(PedAnimDoorOpenCB, ped);
 
 	} else {
+		debug("Door is locked\n");
 		if (enterDoor != DOOR_FRONT_LEFT && enterDoor != DOOR_REAR_LEFT)
 			ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CARDOOR_LOCKED_RHS);
 		else
@@ -2541,6 +2648,7 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 void
 CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 {
+	debug("PedAI.cpp - CPed::PedAnimDoorOpenCB\n");
 	CPed* ped = (CPed*)arg;
 
 	CVehicle* veh = ped->m_pMyVehicle;
@@ -2685,10 +2793,14 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 					ped->QuitEnteringCar();
 					pedToDragOut = nil;
 				} else {
-					if (isLow)
+					if (isLow) {
+						// Was ANIM_STD_CAR_PULL_OUT_PED_LO_RHS
 						ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_PULL_OUT_PED_LO_RHS);
-					else
+					}
+					else {
+						// Was ANIM_STD_CAR_PULL_OUT_PED_RHS
 						ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_PULL_OUT_PED_RHS);
+					}
 
 					ped->m_pVehicleAnim->SetFinishCallback(PedAnimPullPedOutCB, ped);
 				}
@@ -2721,11 +2833,16 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 				ped->QuitEnteringCar();
 				pedToDragOut = nil;
 			} else {
-				if (isLow)
-					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_PULL_OUT_PED_LO_LHS);
-				else
-					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_PULL_OUT_PED_LHS);
-					
+				debug("pedToDragOut, animating\n");
+				if (isLow) {
+					// Was ANIM_STD_CAR_PULL_OUT_PED_LO_LHS
+					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_GETOUT_LO_LHS);
+				}
+				else {
+					// Was ANIM_STD_CAR_PULL_OUT_PED_LHS
+					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_GETOUT_LHS);
+				}
+				
 				ped->m_pVehicleAnim->SetFinishCallback(PedAnimPullPedOutCB, ped);
 			}
 		} else {
@@ -2748,9 +2865,10 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 			}
 
 			if (player != pedToDragOut) {
+				debug("PedAnimDoorOpenCB: pedToDragOut->SetBeingDraggedFromCar\n");
 				pedToDragOut->SetBeingDraggedFromCar(veh, ped->m_vehDoor, false);
-				if (pedToDragOut->IsGangMember())
-					pedToDragOut->RegisterThreatWithGangPeds(ped);
+				// if (pedToDragOut->IsGangMember())
+				// 	pedToDragOut->RegisterThreatWithGangPeds(ped);
 			}
 		}
 	}
@@ -2760,6 +2878,7 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 void
 CPed::PedAnimPullPedOutCB(CAnimBlendAssociation* animAssoc, void* arg)
 {
+	debug("PedAI.cpp - PedAnimPullPedOutCB\n");
 	CPed* ped = (CPed*)arg;
 
 	CVehicle* veh = ped->m_pMyVehicle;
@@ -2845,6 +2964,7 @@ CPed::PedAnimPullPedOutCB(CAnimBlendAssociation* animAssoc, void* arg)
 void
 CPed::PedAnimGetInCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
+	debug("PedAnimGetInCB\n");
 	CPed *ped = (CPed*) arg;
 
 	CVehicle *veh = ped->m_pMyVehicle;
@@ -2940,6 +3060,8 @@ CPed::PedAnimGetInCB(CAnimBlendAssociation *animAssoc, void *arg)
 			return;
 		}
 		if (driver != ped && ped->m_vehDoor != CAR_DOOR_LF) {
+			debug("PedAI.cpp - PedAnimGetInCB - driver != ped && ped->m_vehDoor != CAR_DOOR_LF");
+
 			if (!driver->IsPlayer()) {
 				driver->bUsePedNodeSeek = true;
 				driver->m_pLastPathNode = nil;
@@ -3632,6 +3754,7 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 void
 CPed::SetCarJack(CVehicle* car)
 {
+	debug("SetCarJack\n");
 	uint8 doorFlag;
 	eDoors door;
 	CPed *pedInSeat = nil;
@@ -3714,6 +3837,7 @@ CPed::SetCarJack(CVehicle* car)
 void
 CPed::SetCarJack_AllClear(CVehicle* car, uint32 doorNode, uint32 doorFlag)
 {
+	debug("SetCarJack_AllClear\n");
 	if (m_nPedState != PED_SEEK_CAR)
 		SetStoredState();
 
@@ -3749,13 +3873,15 @@ CPed::SetCarJack_AllClear(CVehicle* car, uint32 doorNode, uint32 doorFlag)
 		else
 			m_pVehicleAnim = CAnimManager::BlendAnimation(GetClump(), ASSOCGRP_STD, zDiff > 4.4f ? ANIM_STD_CAR_ALIGNHI_DOOR_RHS : ANIM_STD_CAR_ALIGN_DOOR_RHS, 4.0f);
 
-		m_pVehicleAnim->SetFinishCallback(PedAnimAlignCB, this);
+		// Was PedAnimAlignCB
+		m_pVehicleAnim->SetFinishCallback(PoliteCarJack, this);
 	}
 }
 
 void
 CPed::SetBeingDraggedFromCar(CVehicle *veh, uint32 vehEnterType, bool quickJack)
 {
+	debug("SetBeingDraggedFromCar\n");
 	if (m_nPedState == PED_DRAG_FROM_CAR)
 		return;
 
@@ -3804,6 +3930,7 @@ CPed::SetBeingDraggedFromCar(CVehicle *veh, uint32 vehEnterType, bool quickJack)
 void
 CPed::BeingDraggedFromCar(void)
 {
+	debug("PedAI.cpp - BeingDraggedFromCar\n");
 	AnimationId enterAnim;
 	bool dontRunAnim = false;
 
@@ -3818,17 +3945,24 @@ CPed::BeingDraggedFromCar(void)
 		} else {
 			if (m_vehDoor == CAR_DOOR_LF || m_vehDoor == CAR_DOOR_LR) {
 				if (bWillBeQuickJacked && m_vehDoor == CAR_DOOR_LF) {
-					enterAnim = ANIM_STD_QUICKJACKED;
+					// Was ANIM_STD_QUICKJACKED
+					enterAnim = ANIM_STD_GETOUT_LHS;
 				} else if (m_pMyVehicle->bLowVehicle) {
-					enterAnim = ANIM_STD_JACKEDCAR_LO_LHS;
+					// Was ANIM_STD_JACKEDCAR_LO_LHS
+					enterAnim = ANIM_STD_GETOUT_LO_LHS;
 				} else {
-					enterAnim = ANIM_STD_JACKEDCAR_LHS;
+					// Was ANIM_STD_JACKEDCAR_LHS
+					enterAnim = ANIM_STD_GETOUT_LHS;
 				}
 			} else if (m_vehDoor == CAR_DOOR_RF || m_vehDoor == CAR_DOOR_RR) {
-				if (m_pMyVehicle->bLowVehicle)
-					enterAnim = ANIM_STD_JACKEDCAR_LO_RHS;
-				else
-					enterAnim = ANIM_STD_JACKEDCAR_RHS;
+				if (m_pMyVehicle->bLowVehicle) {
+					// Was ANIM_STD_JACKEDCAR_LO_RHS
+					enterAnim = ANIM_STD_GETOUT_LO_RHS;
+				}
+				else {
+					// Was ANIM_STD_JACKEDCAR_RHS
+					enterAnim = ANIM_STD_GETOUT_RHS;
+				}
 			} else
 				dontRunAnim = true;
 
@@ -3869,6 +4003,7 @@ CPed::BeingDraggedFromCar(void)
 void
 CPed::SetEnterCar(CVehicle *car, uint32 unused)
 {
+	debug("SetEnterCar\n");
 	if (CCranes::IsThisCarBeingCarriedByAnyCrane(car)) {
 		RestorePreviousState();
 		RestorePreviousObjective();
@@ -3932,6 +4067,9 @@ CPed::SetEnterCar(CVehicle *car, uint32 unused)
 					break;
 			}
 		}
+		debug("IsPedInControl() = %x, m_nPedState = %d, doorFlag = %x, doorFlag & car->m_nGettingInFlags = %x, doorFlag & m_nGettingOutFlags = %x, bIsBeingCarJacked = %x, m_pVehicleAnim = %d, IsDoorReady = %d, IsDoorFullyOpen = %d\n",
+			IsPedInControl(), m_nPedState, doorFlag, doorFlag & car->m_nGettingInFlags, doorFlag & car->m_nGettingOutFlags, car->bIsBeingCarJacked, m_pVehicleAnim, car->IsDoorReady(door), car->IsDoorFullyOpen(door));
+
 		if (!IsPedInControl() || m_fHealth <= 0.0f
 			|| doorFlag & car->m_nGettingInFlags || doorFlag & car->m_nGettingOutFlags
 			|| car->bIsBeingCarJacked || m_pVehicleAnim
@@ -3945,6 +4083,7 @@ CPed::SetEnterCar(CVehicle *car, uint32 unused)
 void
 CPed::SetEnterCar_AllClear(CVehicle *car, uint32 doorNode, uint32 doorFlag)
 {
+	debug("SetEnterCar_AllClear\n");
 	float zDiff = 0.0f;
 	car->m_nGettingInFlags |= doorFlag;
 	bVehEnterDoorIsBlocked = false;

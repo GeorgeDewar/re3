@@ -392,6 +392,7 @@ CPlayerInfo::Process(void)
 							m_pPed->SetEnterCar(carBelow, m_pPed->m_vehDoor);
 						}
 					} else {
+						debug("Setting OBJECTIVE_ENTER_CAR_AS_DRIVER\n");
 						m_pPed->SetObjective(OBJECTIVE_ENTER_CAR_AS_DRIVER, carBelow);
 					}
 				}

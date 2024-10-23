@@ -99,7 +99,7 @@
 eLevelName CGame::currLevel;
 int32 CGame::currArea;
 bool CGame::bDemoMode = true;
-bool CGame::nastyGame = true;
+bool CGame::nastyGame = false;
 bool CGame::frenchGame;
 bool CGame::germanGame;
 bool CGame::noProstitutes;

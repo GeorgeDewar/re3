@@ -103,6 +103,8 @@ CPed::ServiceTalking(void)
 void
 CPed::Say(uint16 audio)
 {
+	debug("Say %d\n", audio);
+
 	if (3.0f + TheCamera.GetPosition().z < GetPosition().z)
 		return;
 

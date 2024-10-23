@@ -3625,6 +3625,7 @@ CPed::CollideWithPed(CPed *collideWith)
 void
 CPed::KillPedWithCar(CVehicle *car, float impulse)
 {
+	debug("PedFight.cpp - CPed::KillPedWithCar\n");
 	CVehicleModelInfo *vehModel;
 	CColModel *vehColModel;
 	uint8 damageDir;

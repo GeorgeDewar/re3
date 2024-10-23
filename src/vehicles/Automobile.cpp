@@ -5095,8 +5095,10 @@ CAutomobile::ScanForCrimes(void)
 	if(FindPlayerVehicle() && FindPlayerVehicle()->IsCar())
 		if(FindPlayerVehicle()->IsAlarmOn())
 			// if player's alarm is on, increase wanted level
-			if((FindPlayerVehicle()->GetPosition() - GetPosition()).MagnitudeSqr() < sq(20.0f))
+			if((FindPlayerVehicle()->GetPosition() - GetPosition()).MagnitudeSqr() < sq(20.0f)) {
+				debug("SetWantedLevelNoDrop(1) due to car alarm\n");
 				CWorld::Players[CWorld::PlayerInFocus].m_pPed->SetWantedLevelNoDrop(1);
+			}
 }
 
 void
