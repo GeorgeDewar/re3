@@ -3953,6 +3953,8 @@ CPed::BeingDraggedFromCar(void)
 void
 CPed::SetEnterCar(CVehicle *car, uint32 unused)
 {
+	debug("SetEnterCar\n");
+
 	if (CCranes::IsThisCarBeingCarriedByAnyCrane(car)) {
 		RestorePreviousState();
 		RestorePreviousObjective();
@@ -4029,6 +4031,8 @@ CPed::SetEnterCar(CVehicle *car, uint32 unused)
 void
 CPed::SetEnterCar_AllClear(CVehicle *car, uint32 doorNode, uint32 doorFlag)
 {
+	debug("SetEnterCar_AllClear\n");
+
 	float zDiff = 0.0f;
 	car->m_nGettingInFlags |= doorFlag;
 	bVehEnterDoorIsBlocked = false;
