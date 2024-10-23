@@ -305,7 +305,9 @@ CPed::ServiceTalking(void)
 void
 CPed::Say(uint16 audio)
 {
-	debug("Say %d: %s\n", audio, sound_names[audio]);
+	if (audio != SOUND_PED_CHAT) {
+		debug("Say %d: %s\n", audio, sound_names[audio]);
+	}
 
 	if (3.0f + TheCamera.GetPosition().z < GetPosition().z)
 		return;
