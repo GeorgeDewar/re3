@@ -1956,11 +1956,15 @@ CPhysical::ProcessCollisionSectorList(CPtrList *lists)
 				}
 
 				if(B->IsPed() && A->IsVehicle() &&
-				   (!Bped->IsPlayer() || B->bHasHitWall && A->m_vecMoveSpeed.MagnitudeSqr() > SQR(0.05f)))
-					Bped->KillPedWithCar((CVehicle*)A, maxImpulseB);
+				   (!Bped->IsPlayer() || B->bHasHitWall && A->m_vecMoveSpeed.MagnitudeSqr() > SQR(0.05f))) {
+					debug("NOT killing pedestrian with vehicle\n");
+					// Bped->KillPedWithCar((CVehicle*)A, maxImpulseB);
+				}
 				else if(B->GetModelIndex() == MI_TRAIN && A->IsPed() &&
-				  (!Aped->IsPlayer() || A->bHasHitWall))
-					Aped->KillPedWithCar((CVehicle*)B, maxImpulseA*2.0f);
+				  (!Aped->IsPlayer() || A->bHasHitWall)) {
+					debug("NOT killing pedestrian with train\n");
+					// Aped->KillPedWithCar((CVehicle*)B, maxImpulseA*2.0f);
+				}
 				else if(B->IsObject() && B->bUsesCollision && A->IsVehicle()){
 					// BUG? not impulseA?
 					if(Bobj->m_nCollisionDamageEffect && maxImpulseB > 20.0f)

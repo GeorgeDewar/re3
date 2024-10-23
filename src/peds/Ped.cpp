@@ -2277,7 +2277,8 @@ CPed::ProcessControl(void)
 								Say(SOUND_PED_DAMAGE);
 							}
 						} else {
-							KillPedWithCar(collidingVeh, m_fDamageImpulse);
+							debug("ProcessControl: NOT killing pedestrian with car\n");
+							//KillPedWithCar(collidingVeh, m_fDamageImpulse);
 						}
 						
 						if (m_pCollidingEntity != collidingEnt)
