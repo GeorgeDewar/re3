@@ -897,6 +897,7 @@ public:
 	static void PedSetInCarCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedSetOutCarCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedAnimAlignCB(CAnimBlendAssociation *assoc, void *arg);
+	static void PoliteCarJack(CAnimBlendAssociation *animAssoc, void *arg);
 	static void PedSetDraggedOutCarCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedAnimStepOutCarCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedSetInTrainCB(CAnimBlendAssociation *assoc, void *arg);
