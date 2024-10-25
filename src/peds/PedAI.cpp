@@ -3238,6 +3238,7 @@ CPed::GetFormationPosition(void)
 void
 CPed::PedAnimStepOutCarCB(CAnimBlendAssociation* animAssoc, void* arg)
 {
+	debug("PedAnimStepOutCarCB\n");
 	CPed* ped = (CPed*)arg;
 
 	CVehicle* veh = ped->m_pMyVehicle;
@@ -3821,9 +3822,12 @@ CPed::SetCarJack_AllClear(CVehicle* car, uint32 doorNode, uint32 doorFlag)
 	m_vecOffsetSeek = carEnterPos - GetPosition();
 	m_nPedStateTimer = CTimer::GetTimeInMilliseconds() + 600;
 
+	bool politeCarjack = true;
+	auto callback = politeCarjack ? PoliteCarJack : PedAnimAlignCB;
+	
 	if(car->IsBike()){
 		bUsesCollision = false;
-		PedAnimAlignCB(nil, this);
+		callback(nil, this);
 	} else {
 		float zDiff = Max(0.0f, carEnterPos.z - GetPosition().z);
 		bUsesCollision = false;
@@ -3833,8 +3837,33 @@ CPed::SetCarJack_AllClear(CVehicle* car, uint32 doorNode, uint32 doorFlag)
 		else
 			m_pVehicleAnim = CAnimManager::BlendAnimation(GetClump(), ASSOCGRP_STD, zDiff > 4.4f ? ANIM_STD_CAR_ALIGNHI_DOOR_RHS : ANIM_STD_CAR_ALIGN_DOOR_RHS, 4.0f);
 
-		m_pVehicleAnim->SetFinishCallback(PedAnimAlignCB, this);
+		m_pVehicleAnim->SetFinishCallback(callback, this);
 	}
+}
+
+void
+CPed::PoliteCarJack(CAnimBlendAssociation *animAssoc, void *arg)
+{
+	CPed *ped = (CPed*)arg;
+	CVehicle *veh = ped->m_pMyVehicle;
+
+	// Make the driver and all passengers leave
+	debug("Exiting driver\n");
+	if (veh->pDriver) {
+		veh->pDriver->SetExitCar(veh, ped->m_vehDoor);
+	}
+	int timer = 100;
+	for (int i = 0; i < veh->m_nNumMaxPassengers; i++){
+		if (veh->pPassengers[i]) {
+			debug("Exiting passenger %d\n", i);
+			veh->pPassengers[i]->m_leaveCarTimer = timer;
+			veh->pPassengers[i]->SetObjective(OBJECTIVE_LEAVE_CAR, veh);
+			timer += CGeneral::GetRandomNumberInRange(200, 400);
+		}
+	}
+
+	// Return control (for now) to the player
+	ped->QuitEnteringCar();
 }
 
 void

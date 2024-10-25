@@ -3982,6 +3982,7 @@ CPed::PedStaggerCB(CAnimBlendAssociation* animAssoc, void* arg)
 void
 CPed::PedSetOutCarCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
+	debug("PedSetOutCarCB\n");
 	CPed *ped = (CPed*)arg;
 
 	CVehicle *veh = ped->m_pMyVehicle;

@@ -963,6 +963,7 @@ public:
 	void UpdatePosition(void);
 	CObject *SpawnFlyingComponent(int, int8);
 	void SetCarJack_AllClear(CVehicle*, uint32, uint32);
+	static void PoliteCarJack(CAnimBlendAssociation *animAssoc, void *arg);
 	bool CanPedJumpThis(CEntity *unused, CVector *damageNormal = nil);
 	void SetNewAttraction(CPedAttractor* pAttractor, const CVector& pos, float, float, int);
 	void ClearWaitState(void);
