@@ -2602,6 +2602,11 @@ CPed::ProcessControl(void)
 			if (m_nWaitState != WAITSTATE_FALSE)
 				Wait();
 
+			if (m_carJackTimer && (m_carJackTimer < CTimer::GetTimeInMilliseconds())) {
+				m_carJackTimer = 0;
+				SetObjective(OBJECTIVE_ENTER_CAR_AS_DRIVER);
+			}
+
 #ifdef CANCELLABLE_CAR_ENTER
 			static bool cancelJack = false;
 			if (IsPlayer()) {

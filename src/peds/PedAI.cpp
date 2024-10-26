@@ -3825,6 +3825,9 @@ CPed::SetCarJack_AllClear(CVehicle* car, uint32 doorNode, uint32 doorFlag)
 	bool politeCarjack = true;
 	auto callback = politeCarjack ? PoliteCarJack : PedAnimAlignCB;
 	
+	PoliteCarJack(nil, this);
+	return;
+
 	if(car->IsBike()){
 		bUsesCollision = false;
 		callback(nil, this);
@@ -3847,6 +3850,8 @@ CPed::PoliteCarJack(CAnimBlendAssociation *animAssoc, void *arg)
 	CPed *ped = (CPed*)arg;
 	CVehicle *veh = ped->m_pMyVehicle;
 
+	//ped->bUsesCollision = true;
+
 	// Make the driver and all passengers leave
 	debug("Exiting driver\n");
 	if (veh->pDriver) {
@@ -3864,6 +3869,11 @@ CPed::PoliteCarJack(CAnimBlendAssociation *animAssoc, void *arg)
 
 	// Return control (for now) to the player
 	ped->QuitEnteringCar();
+
+	// Set a timer that will cause us to enter the car soon
+	ped->m_carJackTimer = CTimer::GetTimeInMilliseconds() + 500;
+	// TODO: Use WaitState
+	// todo: Go to plan B, animate from scratch, don't want door to close again
 }
 
 void
