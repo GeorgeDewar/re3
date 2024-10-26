@@ -2620,6 +2620,7 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 {
 	debug("PedAnimDoorOpenCB\n");
 	CPed* ped = (CPed*)arg;
+	auto ANIM_WAIT_TO_ENTER = ANIM_STD_EVADE_STEP;
 
 	CVehicle* veh = ped->m_pMyVehicle;
 
@@ -2764,9 +2765,9 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 					pedToDragOut = nil;
 				} else {
 					if (isLow)
-						ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_PUNCH); // try chat
+						ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_WAIT_TO_ENTER); // try chat
 					else
-						ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_PUNCH);
+						ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_WAIT_TO_ENTER);
 
 					ped->m_pVehicleAnim->SetFinishCallback(PedAnimPullPedOutCB, ped);
 				}
@@ -2787,9 +2788,9 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 				}
 			} else {
 				if (isLow)
-					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_GET_IN_LO_RHS);
+					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_WAIT_TO_ENTER);
 				else
-					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_GET_IN_RHS);
+					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_WAIT_TO_ENTER);
 
 				ped->m_pVehicleAnim->SetFinishCallback(PedAnimGetInCB, ped);
 			}
@@ -2800,9 +2801,9 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 				pedToDragOut = nil;
 			} else {
 				if (isLow)
-					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_PUNCH);
+					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_WAIT_TO_ENTER);
 				else
-					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_PUNCH);
+					ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_WAIT_TO_ENTER);
 					
 				ped->m_pVehicleAnim->SetFinishCallback(PedAnimPullPedOutCB, ped);
 			}
@@ -3330,7 +3331,10 @@ CPed::PedAnimStepOutCarCB(CAnimBlendAssociation* animAssoc, void* arg)
 		}
 	}
 
-	if (ped->m_objective == OBJECTIVE_LEAVE_CAR_AND_DIE)
+	if (ped->m_objective == OBJECTIVE_LEAVE_CAR_AND_DIE) // if being car jacked, driver should leave door open
+		closeDoor = false;
+	
+	if (veh->bIsBeingCarJacked)
 		closeDoor = false;
 
 	if (!closeDoor) {
