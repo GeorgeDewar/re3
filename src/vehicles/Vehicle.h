@@ -220,7 +220,7 @@ public:
 	uint8 bIsDamaged : 1; // This vehicle has been damaged and is displaying all its components
 	uint8 bHasBeenOwnedByPlayer : 1;// To work out whether stealing it is a crime
 	uint8 bFadeOut : 1; // Fade vehicle out
-	uint8 bIsBeingCarJacked : 1; // Fade vehicle out
+	uint8 bIsBeingCarJacked : 1; // Release gas, apply brakes (used while carjacking takes place)
 	uint8 bCreateRoadBlockPeds : 1; // If this vehicle gets close enough we will create peds (coppers or gang members) round it
 	uint8 bCanBeDamaged : 1; // Set to FALSE during cut scenes to avoid explosions
 	uint8 bUsingSpecialColModel : 1;// Is player vehicle using special collision model, stored in player strucure

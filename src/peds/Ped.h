@@ -892,11 +892,13 @@ public:
 	static void FinishHitHeadCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedAnimGetInCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedAnimDoorOpenCB(CAnimBlendAssociation *assoc, void *arg);
+	static void PedAnimDoorOpenCBNice(CAnimBlendAssociation *assoc, void *arg);
 	static void PedAnimPullPedOutCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedAnimDoorCloseCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedSetInCarCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedSetOutCarCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedAnimAlignCB(CAnimBlendAssociation *assoc, void *arg);
+	static void PedAnimAlignCBNice(CAnimBlendAssociation *assoc, void *arg);
 	static void PedSetDraggedOutCarCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedAnimStepOutCarCB(CAnimBlendAssociation *assoc, void *arg);
 	static void PedSetInTrainCB(CAnimBlendAssociation *assoc, void *arg);
