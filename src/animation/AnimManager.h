@@ -142,4 +142,5 @@ public:
 	static void CreateAnimAssocGroups(void);
 	static void RemoveLastAnimFile(void);
 	static CAnimBlendAssocGroup* GetAnimAssocGroups(void) { return ms_aAnimAssocGroups; }
+	static const char *GetAnimName(int animId);
 };

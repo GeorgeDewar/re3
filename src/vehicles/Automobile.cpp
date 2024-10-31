@@ -4642,6 +4642,7 @@ inline void ProcessDoorOpenCloseAnimation(CAutomobile *car, uint32 component, eD
 void
 CAutomobile::ProcessOpenDoor(uint32 component, uint32 anim, float time)
 {
+	debug("  ProcessOpenDoor (anim %s)\n", CAnimManager::GetAnimName(anim));
 	eDoors door;
 
 	switch(component){
@@ -4675,6 +4676,7 @@ CAutomobile::ProcessOpenDoor(uint32 component, uint32 anim, float time)
 	case ANIM_STD_GETOUT_LO_LHS:
 	case ANIM_STD_GETOUT_RHS:
 	case ANIM_STD_GETOUT_LO_RHS:
+		// FOr some of these cases we need the door to open fully so the player has room to get in via the normal animation
 		ProcessDoorOpenAnimation(this, component, door, time, 0.06f, 0.43f);
 		break;
 	case ANIM_STD_CAR_CLOSE_LHS:

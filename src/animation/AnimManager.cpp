@@ -1698,3 +1698,9 @@ CAnimManager::RemoveLastAnimFile(void)
 		ms_aAnimations[ms_aAnimBlocks[ms_numAnimBlocks].firstIndex + i].Shutdown();
 	ms_aAnimBlocks[ms_numAnimBlocks].isLoaded = false;
 }
+
+const char *
+CAnimManager::GetAnimName(int animId)
+{
+	return animation_names[animId];
+}

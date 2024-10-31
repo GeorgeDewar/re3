@@ -2599,7 +2599,11 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 				ped->m_pVehicleAnim->SetFinishCallback(PedAnimGetInCB, ped);
 				return;
 			}
-			//ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_OPEN_DOOR_LHS);
+
+			// We only want this animation if there is no driver, otherwise the driver will open the door for us
+			if (!veh->bIsBeingCarJacked) {
+				ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_OPEN_DOOR_LHS);
+			}
 		}
 		ped->m_pVehicleAnim->SetFinishCallback(PedAnimDoorOpenCB, ped);
 
@@ -2703,7 +2707,9 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 		
 		return;
 	}
-	veh->ProcessOpenDoor(ped->m_vehDoor, ANIM_STD_CAR_OPEN_DOOR_LHS, 1.0f);
+	
+	// This might be causing the door to insta-open, which is not wanted
+	// veh->ProcessOpenDoor(ped->m_vehDoor, ANIM_STD_CAR_OPEN_DOOR_LHS, 1.0f);
 
 	if (ped->m_vehDoor == CAR_DOOR_LF || ped->m_vehDoor == CAR_DOOR_RF)
 		isVan = false;
@@ -4311,6 +4317,7 @@ CPed::SetExitBoat(CVehicle *boat)
 void
 CPed::SetExitCar(CVehicle *veh, uint32 wantedDoorNode)
 {
+	Debug("SetExitCar\n");
 	uint32 optedDoorNode = wantedDoorNode;
 	bool teleportNeeded = false;
 	bool isLow = !!veh->bLowVehicle;
