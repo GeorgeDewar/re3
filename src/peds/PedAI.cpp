@@ -194,9 +194,9 @@ void
 CPed::SetObjective(eObjective newObj)
 {
 	if (IsPlayer()) {
-		debug("Set player objective %d: %s\n", newObj, objective_names[newObj]);
+		Debug("Set player objective %d: %s\n", newObj, objective_names[newObj]);
 	} else {
-		debug("Set pedestrian objective %d: %s\n", newObj, objective_names[newObj]);
+		Debug("Set pedestrian objective %d: %s\n", newObj, objective_names[newObj]);
 	}
 
 	if (DyingOrDead() || m_attachedTo)
@@ -246,9 +246,9 @@ void
 CPed::SetObjective(eObjective newObj, void *entity)
 {
 	if (IsPlayer()) {
-		debug("Set player objective (with entity) %d: %s\n", newObj, objective_names[newObj]);
+		Debug("Set player objective (with entity) %d: %s\n", newObj, objective_names[newObj]);
 	} else {
-		debug("Set pedestrian objective (with entity) %d: %s\n", newObj, objective_names[newObj]);
+		Debug("Set pedestrian objective (with entity) %d: %s\n", newObj, objective_names[newObj]);
 	}
 
 	if (DyingOrDead())
@@ -2372,9 +2372,8 @@ CPed::ReactToAttack(CEntity *attacker)
 void
 CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
-	debug("PedAnimAlignCB\n");
-
 	CPed *ped = (CPed*)arg;
+	ped->Debug("PedAnimAlignCB\n");
 
 	CVehicle *veh = ped->m_pMyVehicle;
 	if (animAssoc)
@@ -2618,8 +2617,8 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 void
 CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 {
-	debug("PedAnimDoorOpenCB\n");
 	CPed* ped = (CPed*)arg;
+	ped->Debug("PedAnimDoorOpenCB\n");
 	auto ANIM_WAIT_TO_ENTER = ANIM_STD_TURN180;
 
 	CVehicle* veh = ped->m_pMyVehicle;
@@ -2840,8 +2839,8 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 void
 CPed::PedAnimPullPedOutCB(CAnimBlendAssociation* animAssoc, void* arg)
 {
-	debug("PedAnimPullPedOutCB\n");
 	CPed* ped = (CPed*)arg;
+	ped->Debug("PedAnimPullPedOutCB\n");
 	ped->m_nPedStateTimer = CTimer::GetTimeInMilliseconds() + 600;
 
 	CVehicle* veh = ped->m_pMyVehicle;
@@ -2927,8 +2926,8 @@ CPed::PedAnimPullPedOutCB(CAnimBlendAssociation* animAssoc, void* arg)
 void
 CPed::PedAnimGetInCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
-	debug("PedAnimGetInCB\n");
 	CPed *ped = (CPed*) arg;
+	ped->Debug("PedAnimGetInCB\n");
 
 	CVehicle *veh = ped->m_pMyVehicle;
 	if (animAssoc)
@@ -3092,8 +3091,8 @@ CPed::PedShuffle(void)
 void
 CPed::PedAnimDoorCloseCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
-	debug("PedAnimDoorCloseCB\n");
 	CPed *ped = (CPed*)arg;
+	ped->Debug("PedAnimDoorCloseCB\n");
 
 	CAutomobile *veh = (CAutomobile*)(ped->m_pMyVehicle);
 	
@@ -3241,8 +3240,8 @@ CPed::GetFormationPosition(void)
 void
 CPed::PedAnimStepOutCarCB(CAnimBlendAssociation* animAssoc, void* arg)
 {
-	debug("PedAnimStepOutCarCB\n");
 	CPed* ped = (CPed*)arg;
+	ped->Debug("PedAnimStepOutCarCB\n");
 
 	CVehicle* veh = ped->m_pMyVehicle;
 	if (animAssoc) {
@@ -3391,7 +3390,7 @@ static const char *PedLineUpPhases[] = {
 void
 CPed::LineUpPedWithCar(PedLineUpPhase phase)
 {
-	debug("  LineUpPedWithCar: Player: %d, Phase %s\n", IsPlayer(), PedLineUpPhases[phase]);
+	Debug("  LineUpPedWithCar: Player: %d, Phase %s\n", IsPlayer(), PedLineUpPhases[phase]);
 	bool vehIsUpsideDown = false;
 	bool stillGettingInOut = false;
 	int vehAnim;
@@ -3594,7 +3593,7 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 	} else {
 		neededPos = GetPositionToOpenCarDoor(veh, m_vehDoor, seatPosMult);
 	}
-	debug("  seatPosMult = %.2f, neededPos = %.2f %.2f %.2f\n", seatPosMult, neededPos.x, neededPos.y, neededPos.z);
+	Debug("  seatPosMult = %.2f, neededPos = %.2f %.2f %.2f\n", seatPosMult, neededPos.x, neededPos.y, neededPos.z);
 
 	autoZPos = neededPos;
 
@@ -3681,7 +3680,7 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 
 	if (m_nPedStateTimer == 0 && IsPlayer()) {
 		// Not ready yet
-		debug("Returning early from LineUpPedWithCar\n");
+		Debug("Returning early from LineUpPedWithCar\n");
 		return;
 	}
 
@@ -3693,7 +3692,7 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 	} else {
 		float limitedDest = CGeneral::LimitRadianAngle(m_fRotationDest);
 		float timeUntilStateChange = (m_nPedStateTimer - CTimer::GetTimeInMilliseconds())/600.0f;
-		debug("  timeUntilStateChange: %.2f (%dms), m_vecOffsetSeek: %.2f %.2f %.2f\n", 
+		Debug("  timeUntilStateChange: %.2f (%dms), m_vecOffsetSeek: %.2f %.2f %.2f\n", 
 			timeUntilStateChange, m_nPedStateTimer - CTimer::GetTimeInMilliseconds(),
 			m_vecOffsetSeek.x, m_vecOffsetSeek.y, m_vecOffsetSeek.z);
 
@@ -3714,7 +3713,7 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 	}
 
 	if (seatPosMult > 0.2f || vehIsUpsideDown || veh->IsBike()) {
-		debug("  Setting position to %.2f %.2f %.2f\n", neededPos.x, neededPos.y, neededPos.z);
+		Debug("  Setting position to %.2f %.2f %.2f\n", neededPos.x, neededPos.y, neededPos.z);
 		SetPosition(neededPos);
 		SetHeading(m_fRotationCur);
 	} else {
@@ -3740,7 +3739,7 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 void
 CPed::SetCarJack(CVehicle* car)
 {
-	debug("SetCarJack\n");
+	Debug("SetCarJack\n");
 	uint8 doorFlag;
 	eDoors door;
 	CPed *pedInSeat = nil;
@@ -3823,7 +3822,7 @@ CPed::SetCarJack(CVehicle* car)
 void
 CPed::SetCarJack_AllClear(CVehicle* car, uint32 doorNode, uint32 doorFlag)
 {
-	debug("SetCarJack_AllClear\n");
+	Debug("SetCarJack_AllClear\n");
 
 	if (m_nPedState != PED_SEEK_CAR)
 		SetStoredState();
@@ -3849,7 +3848,7 @@ CPed::SetCarJack_AllClear(CVehicle* car, uint32 doorNode, uint32 doorFlag)
 
 	// Move the desitination a bit back, if we need to allow the driver to get out
 	//auto forward = car->GetForward();
-	//debug("Forward: %f, %f\n", forward.x, forward.y);
+	//Debug("Forward: %f, %f\n", forward.x, forward.y);
 	//m_vecOffsetSeek -= (forward * 3); // Three metres behind the desired door
 
 	//m_nPedStateTimer = CTimer::GetTimeInMilliseconds() + 600;
@@ -3886,14 +3885,14 @@ CPed::PoliteCarJack(CAnimBlendAssociation *animAssoc, void *arg)
 	//ped->bUsesCollision = true;
 
 	// Make the driver and all passengers leave
-	debug("Exiting driver\n");
+	ped->Debug("Exiting driver\n");
 	if (veh->pDriver) {
 		veh->pDriver->SetExitCar(veh, ped->m_vehDoor);
 	}
 	int timer = 100;
 	for (int i = 0; i < veh->m_nNumMaxPassengers; i++){
 		if (veh->pPassengers[i]) {
-			debug("Exiting passenger %d\n", i);
+			ped->Debug("Exiting passenger %d\n", i);
 			veh->pPassengers[i]->m_leaveCarTimer = timer;
 			veh->pPassengers[i]->SetObjective(OBJECTIVE_LEAVE_CAR, veh);
 			timer += CGeneral::GetRandomNumberInRange(200, 400);
@@ -3912,7 +3911,7 @@ CPed::PoliteCarJack(CAnimBlendAssociation *animAssoc, void *arg)
 void
 CPed::SetBeingDraggedFromCar(CVehicle *veh, uint32 vehEnterType, bool quickJack)
 {
-	debug("SetBeingDraggedFromCar\n");
+	Debug("SetBeingDraggedFromCar\n");
 
 	if (m_nPedState == PED_DRAG_FROM_CAR)
 		return;
@@ -3962,7 +3961,7 @@ CPed::SetBeingDraggedFromCar(CVehicle *veh, uint32 vehEnterType, bool quickJack)
 void
 CPed::BeingDraggedFromCar(void)
 {
-	debug("BeingDraggedFromCar\n");
+	Debug("BeingDraggedFromCar\n");
 	AnimationId enterAnim;
 	bool dontRunAnim = false;
 
@@ -4028,7 +4027,7 @@ CPed::BeingDraggedFromCar(void)
 void
 CPed::SetEnterCar(CVehicle *car, uint32 unused)
 {
-	debug("SetEnterCar\n");
+	Debug("SetEnterCar\n");
 
 	if (CCranes::IsThisCarBeingCarriedByAnyCrane(car)) {
 		RestorePreviousState();
@@ -4106,7 +4105,7 @@ CPed::SetEnterCar(CVehicle *car, uint32 unused)
 void
 CPed::SetEnterCar_AllClear(CVehicle *car, uint32 doorNode, uint32 doorFlag)
 {
-	debug("SetEnterCar_AllClear\n");
+	Debug("SetEnterCar_AllClear\n");
 
 	float zDiff = 0.0f;
 	car->m_nGettingInFlags |= doorFlag;
@@ -4160,7 +4159,7 @@ CPed::SetEnterCar_AllClear(CVehicle *car, uint32 doorNode, uint32 doorFlag)
 void
 CPed::EnterCar(void)
 {
-	debug("  EnterCar\n");
+	Debug("  EnterCar\n");
 	if (IsNotInWreckedVehicle() && m_fHealth > 0.0f) {
 		CVehicle *veh = m_pMyVehicle;
 
@@ -4695,6 +4694,7 @@ CPed::SetExitCar(CVehicle *veh, uint32 wantedDoorNode)
 void
 CPed::ExitCar(void)
 {
+	Debug("ExitCar\n");
 	if (!m_pVehicleAnim) {
 		if (InVehicle()) {
 			if (m_pMyVehicle->IsBike()) {

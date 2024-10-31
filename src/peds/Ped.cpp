@@ -40,6 +40,7 @@
 #include "Clock.h"
 #include "Wanted.h"
 #include "SaveBuf.h"
+#include <stdarg.h>
 
 CPed *gapTempPedList[50];
 uint16 gnNumTempPedList;
@@ -546,7 +547,7 @@ static const char *pedStates[] = {
 
 void CPed::SetPedState(PedState state)
 	{
-		debug("SetPedState: %d (%s)\n", state, pedStates[state]);
+		Debug("SetPedState: %d (%s)\n", state, pedStates[state]);
 		if (GetPedState() == PED_FOLLOW_PATH && state != PED_FOLLOW_PATH)
 			ClearFollowPath();
 		m_nPedState = state;
@@ -2352,7 +2353,7 @@ CPed::ProcessControl(void)
 								Say(SOUND_PED_DAMAGE);
 							}
 						} else {
-							debug("ProcessControl: NOT killing pedestrian with car\n");
+							Debug("ProcessControl: NOT killing pedestrian with car\n");
 							//KillPedWithCar(collidingVeh, m_fDamageImpulse);
 						}
 						
@@ -2725,7 +2726,7 @@ CPed::ProcessControl(void)
 #endif
 
 			if (IsPlayer()) {
-				debug("  Player pos: %.2f %.2f %.2f\n", GetPosition().x, GetPosition().y, GetPosition().z);
+				Debug("  Player pos: %.2f %.2f %.2f\n", GetPosition().x, GetPosition().y, GetPosition().z);
 			}
 
 			switch (m_nPedState) {
@@ -4066,8 +4067,8 @@ CPed::PedStaggerCB(CAnimBlendAssociation* animAssoc, void* arg)
 void
 CPed::PedSetOutCarCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
-	debug("PedSetOutCarCB\n");
 	CPed *ped = (CPed*)arg;
+	ped->Debug("PedSetOutCarCB\n");
 
 	CVehicle *veh = ped->m_pMyVehicle;
 
@@ -4323,8 +4324,8 @@ CPed::PedSetDraggedOutCarCB(CAnimBlendAssociation *dragAssoc, void *arg)
 void
 CPed::PedSetInCarCB(CAnimBlendAssociation *animAssoc, void *arg)
 {
-	debug("PedSetInCarCB\n");
 	CPed *ped = (CPed*)arg;
+	ped->Debug("PedSetInCarCB\n");
 
 	CVehicle *veh = ped->m_pMyVehicle;
 
@@ -5640,7 +5641,7 @@ CPed::TurnBody(void)
 void
 CPed::SetSeek(CVector pos, float distanceToCountDone)
 {
-	debug("SetSeek pos: %f %f %f\n", pos.x, pos.y, pos.z);
+	Debug("SetSeek pos: %f %f %f\n", pos.x, pos.y, pos.z);
 
 	if (!IsPedInControl()
 		|| (m_nPedState == PED_SEEK_POS && m_vecSeekPos.x == pos.x && m_vecSeekPos.y == pos.y) || m_nPedState == PED_FOLLOW_PATH)
@@ -5660,7 +5661,7 @@ CPed::SetSeek(CVector pos, float distanceToCountDone)
 void
 CPed::SetSeek(CEntity *seeking, float distanceToCountDone)
 {
-	debug("SetSeek entity\n");
+	Debug("SetSeek entity\n");
 
 	if (!IsPedInControl())
 		return;
@@ -7482,7 +7483,7 @@ CPed::Teleport(CVector pos)
 void
 CPed::SetSeekCar(CVehicle *car, uint32 doorNode)
 {
-	debug("SetSeekCar\n");
+	Debug("SetSeekCar\n");
 
 	if (m_nPedState == PED_SEEK_CAR)
 		return;
@@ -7587,14 +7588,14 @@ CPed::SeekCar(void)
 
 	// Move the desitination a bit back, if we need to allow the driver to get out
 	auto forward = vehToSeek->GetForward();
-	debug("Forward: %f, %f\n", forward.x, forward.y);
+	Debug("Forward: %f, %f\n", forward.x, forward.y);
 
 	dest -= (forward * 1); // One metre behind the desired door
 
 	m_vecSeekPos = dest;
 	float distToDestSqr = (m_vecSeekPos - GetPosition()).MagnitudeSqr();
 
-	debug("dest: %f, %f, %f, dist: %f\n", dest.x, dest.y, dest.z, sq(distToDestSqr));
+	Debug("dest: %f, %f, %f, dist: %f\n", dest.x, dest.y, dest.z, sq(distToDestSqr));
 
 	if (bIsRunning ||
 		vehToSeek->pDriver && distToDestSqr > sq(2.0f) && (Abs(vehToSeek->m_vecMoveSpeed.x) > 0.01f || Abs(vehToSeek->m_vecMoveSpeed.y) > 0.01f))
@@ -7828,7 +7829,7 @@ CPed::IsPointerValid(void)
 void
 CPed::SetPedPositionInCar(void)
 {
-	//debug("  SetPedPositionInCar\n");
+	//Debug("  SetPedPositionInCar\n");
 	bool notYet = false;
 	if (CReplay::IsPlayingBack())
 		return;
@@ -9759,6 +9760,44 @@ CPed::Load(uint8*& buf)
 		}
 	}
 	SkipSaveBuf(buf, 252);
+}
+
+const char *pedTypes[] = {
+	"PLAYER1",
+	"PLAYER2",
+	"PLAYER3",
+	"PLAYER4",
+	"CIVMALE",
+	"CIVFEMALE",
+	"COP",
+	"GANG1",
+	"GANG2",
+	"GANG3",
+	"GANG4",
+	"GANG5",
+	"GANG6",
+	"GANG7",
+	"GANG8",
+	"GANG9",
+	"EMERGENCY",
+	"FIREMAN",
+	"CRIMINAL",
+	"UNUSED1",
+	"PROSTITUTE",
+	"SPECIAL",
+	"UNUSED2",
+};
+
+void
+CPed::Debug(const char *format, ...)
+{
+	char *buf = new char[1024];
+
+	va_list va;
+	va_start(va, format);
+	vsprintf(buf, format, va);
+
+	debug("%10s: %s", pedTypes[m_nPedType], buf);
 }
 #undef CopyFromBuf
 #undef CopyToBuf

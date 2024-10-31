@@ -873,6 +873,7 @@ public:
 	void PositionAttachedPed();
 	bool CanUseTorsoWhenLooking();
 	void ScanForDelayedResponseThreats();
+	void Debug(const char *format, ...);
 
 	// Static methods
 	static CVector GetLocalPositionToOpenCarDoor(CVehicle *veh, uint32 component, float offset);
