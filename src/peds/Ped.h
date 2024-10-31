@@ -981,12 +981,7 @@ public:
 	CWeapon *GetWeapon(void) { return &m_weapons[m_currentWeapon]; }
 
 	PedState GetPedState(void) { return m_nPedState; }
-	void SetPedState(PedState state) 
-	{
-		if (GetPedState() == PED_FOLLOW_PATH && state != PED_FOLLOW_PATH)
-			ClearFollowPath();
-		m_nPedState = state;
-	}
+	void SetPedState(PedState state);
 	bool Dead(void) { return m_nPedState == PED_DEAD; }
 	bool Dying(void) { return m_nPedState == PED_DIE; }
 	bool DyingOrDead(void) { return m_nPedState == PED_DIE || m_nPedState == PED_DEAD; }

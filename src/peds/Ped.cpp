@@ -477,6 +477,81 @@ CPed::SetPedStats(ePedStats pedStat)
 	m_pedStats = CPedStats::ms_apPedStats[pedStat];
 }
 
+static const char *pedStates[] = {
+	"PED_NONE",
+	"PED_IDLE",
+	"PED_LOOK_ENTITY",
+	"PED_LOOK_HEADING",
+	"PED_WANDER_RANGE",
+	"PED_WANDER_PATH",
+	"PED_SEEK_POS",
+	"PED_SEEK_ENTITY",
+	"PED_FLEE_POS",
+	"PED_FLEE_ENTITY",
+	"PED_PURSUE",
+	"PED_FOLLOW_PATH",
+	"PED_SNIPER_MODE",
+	"PED_ROCKET_MODE",
+	"PED_DUMMY",
+	"PED_PAUSE",
+	"PED_ATTACK",
+	"PED_FIGHT",
+	"PED_FACE_PHONE",
+	"PED_MAKE_CALL",
+	"PED_CHAT",
+	"PED_MUG",
+	"PED_AIM_GUN",
+	"PED_AI_CONTROL",
+	"PED_SEEK_CAR",
+	"PED_SEEK_IN_BOAT",
+	"PED_FOLLOW_ROUTE",
+	"PED_CPR",
+	"PED_SOLICIT",
+	"PED_BUY_ICECREAM",
+	"PED_INVESTIGATE",
+	"PED_STEP_AWAY",
+	"PED_ON_FIRE",
+	"PED_SUN_BATHE",
+	"PED_FLASH",
+	"PED_JOG",
+	"PED_ANSWER_MOBILE",
+	"PED_UNKNOWN",
+	"PED_STATES_NO_AI",
+	"PED_ABSEIL",
+	"PED_SIT",
+	"PED_JUMP",
+	"PED_FALL",
+	"PED_GETUP",
+	"PED_STAGGER",
+	"PED_DIVE_AWAY",
+	"PED_STATES_NO_ST",
+	"PED_ENTER_TRAIN",
+	"PED_EXIT_TRAIN",
+	"PED_ARREST_PLAYER",
+	"PED_DRIVING",
+	"PED_PASSENGER",
+	"PED_TAXI_PASSENGER",
+	"PED_OPEN_DOOR",
+	"PED_DIE",
+	"PED_DEAD",
+	"PED_CARJACK",
+	"PED_DRAG_FROM_CAR",
+	"PED_ENTER_CAR",
+	"PED_STEAL_CAR",
+	"PED_EXIT_CAR",
+	"PED_HANDS_UP",
+	"PED_ARRESTED",
+	"PED_DEPLOY_STINGER"
+};
+
+void CPed::SetPedState(PedState state)
+	{
+		debug("SetPedState: %d (%s)\n", state, pedStates[state]);
+		if (GetPedState() == PED_FOLLOW_PATH && state != PED_FOLLOW_PATH)
+			ClearFollowPath();
+		m_nPedState = state;
+	}
+
 void
 CPed::DeleteRwObject()
 {
