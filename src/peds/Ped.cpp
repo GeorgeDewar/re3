@@ -2724,6 +2724,10 @@ CPed::ProcessControl(void)
 			}
 #endif
 
+			if (IsPlayer()) {
+				debug("  Player pos: %.2f %.2f %.2f\n", GetPosition().x, GetPosition().y, GetPosition().z);
+			}
+
 			switch (m_nPedState) {
 				case PED_IDLE:
 					Idle();
@@ -5636,6 +5640,8 @@ CPed::TurnBody(void)
 void
 CPed::SetSeek(CVector pos, float distanceToCountDone)
 {
+	debug("SetSeek pos: %f %f %f\n", pos.x, pos.y, pos.z);
+
 	if (!IsPedInControl()
 		|| (m_nPedState == PED_SEEK_POS && m_vecSeekPos.x == pos.x && m_vecSeekPos.y == pos.y) || m_nPedState == PED_FOLLOW_PATH)
 		return;
@@ -5654,6 +5660,8 @@ CPed::SetSeek(CVector pos, float distanceToCountDone)
 void
 CPed::SetSeek(CEntity *seeking, float distanceToCountDone)
 {
+	debug("SetSeek entity\n");
+
 	if (!IsPedInControl())
 		return;
 
@@ -7576,8 +7584,17 @@ CPed::SeekCar(void)
 		}
 	}
 	bool foundBetterPosToSeek = PossiblyFindBetterPosToSeekCar(&dest, vehToSeek);
+
+	// Move the desitination a bit back, if we need to allow the driver to get out
+	auto forward = vehToSeek->GetForward();
+	debug("Forward: %f, %f\n", forward.x, forward.y);
+
+	dest -= (forward * 1); // One metre behind the desired door
+
 	m_vecSeekPos = dest;
 	float distToDestSqr = (m_vecSeekPos - GetPosition()).MagnitudeSqr();
+
+	debug("dest: %f, %f, %f, dist: %f\n", dest.x, dest.y, dest.z, sq(distToDestSqr));
 
 	if (bIsRunning ||
 		vehToSeek->pDriver && distToDestSqr > sq(2.0f) && (Abs(vehToSeek->m_vecMoveSpeed.x) > 0.01f || Abs(vehToSeek->m_vecMoveSpeed.y) > 0.01f))
@@ -7811,6 +7828,7 @@ CPed::IsPointerValid(void)
 void
 CPed::SetPedPositionInCar(void)
 {
+	//debug("  SetPedPositionInCar\n");
 	bool notYet = false;
 	if (CReplay::IsPlayingBack())
 		return;

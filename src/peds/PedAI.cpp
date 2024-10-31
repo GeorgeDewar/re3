@@ -2600,7 +2600,7 @@ CPed::PedAnimAlignCB(CAnimBlendAssociation *animAssoc, void *arg)
 				ped->m_pVehicleAnim->SetFinishCallback(PedAnimGetInCB, ped);
 				return;
 			}
-			ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_OPEN_DOOR_LHS);
+			//ped->m_pVehicleAnim = CAnimManager::AddAnimation(ped->GetClump(), ASSOCGRP_STD, ANIM_STD_CAR_OPEN_DOOR_LHS);
 		}
 		ped->m_pVehicleAnim->SetFinishCallback(PedAnimDoorOpenCB, ped);
 
@@ -2620,7 +2620,7 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 {
 	debug("PedAnimDoorOpenCB\n");
 	CPed* ped = (CPed*)arg;
-	auto ANIM_WAIT_TO_ENTER = ANIM_STD_EVADE_STEP;
+	auto ANIM_WAIT_TO_ENTER = ANIM_STD_TURN180;
 
 	CVehicle* veh = ped->m_pMyVehicle;
 
@@ -2828,6 +2828,7 @@ CPed::PedAnimDoorOpenCB(CAnimBlendAssociation* animAssoc, void* arg)
 
 			if (player != pedToDragOut) {
 				pedToDragOut->SetExitCar(veh, ped->m_vehDoor);
+				//pedToDragOut->bFleeAfterExitingCar = true;
 				if (pedToDragOut->IsGangMember())
 					pedToDragOut->RegisterThreatWithGangPeds(ped);
 			}
@@ -2841,6 +2842,7 @@ CPed::PedAnimPullPedOutCB(CAnimBlendAssociation* animAssoc, void* arg)
 {
 	debug("PedAnimPullPedOutCB\n");
 	CPed* ped = (CPed*)arg;
+	ped->m_nPedStateTimer = CTimer::GetTimeInMilliseconds() + 600;
 
 	CVehicle* veh = ped->m_pMyVehicle;
 	if (animAssoc)
@@ -3379,9 +3381,17 @@ CPed::PedAnimStepOutCarCB(CAnimBlendAssociation* animAssoc, void* arg)
 	return;
 }
 
+static const char *PedLineUpPhases[] = {
+	"LINE_UP_TO_CAR_START",
+	"LINE_UP_TO_CAR_END",
+	"LINE_UP_TO_CAR_2", // Buggy. Used for cops arresting you from passenger door
+	"LINE_UP_TO_CAR_FALL"
+};
+
 void
 CPed::LineUpPedWithCar(PedLineUpPhase phase)
 {
+	debug("  LineUpPedWithCar: Player: %d, Phase %s\n", IsPlayer(), PedLineUpPhases[phase]);
 	bool vehIsUpsideDown = false;
 	bool stillGettingInOut = false;
 	int vehAnim;
@@ -3464,6 +3474,7 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 		} else if (veh->bIsBus) {
 			m_fRotationDest = -0.5f * PI + veh->GetForward().Heading();
 		} else {
+			// Player should rotate to match the direction the car is facing
 			m_fRotationDest = veh->GetForward().Heading();
 		}
 	} else {
@@ -3583,6 +3594,7 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 	} else {
 		neededPos = GetPositionToOpenCarDoor(veh, m_vehDoor, seatPosMult);
 	}
+	debug("  seatPosMult = %.2f, neededPos = %.2f %.2f %.2f\n", seatPosMult, neededPos.x, neededPos.y, neededPos.z);
 
 	autoZPos = neededPos;
 
@@ -3667,6 +3679,12 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 		}
 	}
 
+	if (m_nPedStateTimer == 0 && IsPlayer()) {
+		// Not ready yet
+		debug("Returning early from LineUpPedWithCar\n");
+		return;
+	}
+
 	if (CTimer::GetTimeInMilliseconds() < m_nPedStateTimer)
 		stillGettingInOut = veh->m_vehType != VEHICLE_TYPE_BOAT || bOnBoat;
 
@@ -3675,6 +3693,9 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 	} else {
 		float limitedDest = CGeneral::LimitRadianAngle(m_fRotationDest);
 		float timeUntilStateChange = (m_nPedStateTimer - CTimer::GetTimeInMilliseconds())/600.0f;
+		debug("  timeUntilStateChange: %.2f (%dms), m_vecOffsetSeek: %.2f %.2f %.2f\n", 
+			timeUntilStateChange, m_nPedStateTimer - CTimer::GetTimeInMilliseconds(),
+			m_vecOffsetSeek.x, m_vecOffsetSeek.y, m_vecOffsetSeek.z);
 
 		if (timeUntilStateChange <= 0.0f) {
 			m_vecOffsetSeek.x = 0.0f;
@@ -3693,6 +3714,7 @@ CPed::LineUpPedWithCar(PedLineUpPhase phase)
 	}
 
 	if (seatPosMult > 0.2f || vehIsUpsideDown || veh->IsBike()) {
+		debug("  Setting position to %.2f %.2f %.2f\n", neededPos.x, neededPos.y, neededPos.z);
 		SetPosition(neededPos);
 		SetHeading(m_fRotationCur);
 	} else {
@@ -3823,8 +3845,15 @@ CPed::SetCarJack_AllClear(CVehicle* car, uint32 doorNode, uint32 doorFlag)
 	carEnterPos = GetPositionToOpenCarDoor(car, m_vehDoor);
 
 	car->m_nGettingInFlags |= doorFlag;
-	m_vecOffsetSeek = carEnterPos - GetPosition();
-	m_nPedStateTimer = CTimer::GetTimeInMilliseconds() + 600;
+	m_vecOffsetSeek = carEnterPos - GetPosition(); // TOOD: Ah, smoking gun!
+
+	// Move the desitination a bit back, if we need to allow the driver to get out
+	//auto forward = car->GetForward();
+	//debug("Forward: %f, %f\n", forward.x, forward.y);
+	//m_vecOffsetSeek -= (forward * 3); // Three metres behind the desired door
+
+	//m_nPedStateTimer = CTimer::GetTimeInMilliseconds() + 600;
+	m_nPedStateTimer = 0;
 
 	bool politeCarjack = false;
 	auto callback = politeCarjack ? PoliteCarJack : PedAnimAlignCB;
@@ -3933,6 +3962,7 @@ CPed::SetBeingDraggedFromCar(CVehicle *veh, uint32 vehEnterType, bool quickJack)
 void
 CPed::BeingDraggedFromCar(void)
 {
+	debug("BeingDraggedFromCar\n");
 	AnimationId enterAnim;
 	bool dontRunAnim = false;
 
@@ -4130,6 +4160,7 @@ CPed::SetEnterCar_AllClear(CVehicle *car, uint32 doorNode, uint32 doorFlag)
 void
 CPed::EnterCar(void)
 {
+	debug("  EnterCar\n");
 	if (IsNotInWreckedVehicle() && m_fHealth > 0.0f) {
 		CVehicle *veh = m_pMyVehicle;
 
@@ -4142,7 +4173,9 @@ CPed::EnterCar(void)
 			}
 		}
 		bIsInTheAir = false;
-		LineUpPedWithCar(LINE_UP_TO_CAR_START);
+		//if (!veh->pDriver) { // don't line up until the driver is out
+			LineUpPedWithCar(LINE_UP_TO_CAR_START);
+		//}
 		if (veh->IsBike()) {
 			CBike *bike = (CBike*)veh;
 			if (bike->GetStatus() == STATUS_ABANDONED && !bike->bIsBeingPickedUp && m_pVehicleAnim) {
